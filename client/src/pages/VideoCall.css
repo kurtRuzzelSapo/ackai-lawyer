@@ -267,11 +267,14 @@
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
 }
 
 .sidebar:not(.open) {
   transform: translateX(100%);
+  pointer-events: none;
 }
 
 .sidebar-header {
@@ -418,32 +421,77 @@
 
 /* Floating Toggle Button */
 .floating-toggle {
-  position: absolute;
+  position: fixed;
   top: 50%;
-  right: 400px;
+  right: 420px;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: rgba(59, 130, 246, 0.9);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  background: rgba(59, 130, 246, 0.95);
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  border-radius: 12px;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 150;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .floating-toggle:hover {
   background: rgba(59, 130, 246, 1);
   transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.floating-toggle:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .floating-toggle.closed {
-  right: 0;
+  right: 20px;
+}
+
+.floating-toggle i {
+  font-size: 1.125rem;
+  transition: transform 0.3s ease;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  background: #ef4444;
+  color: white;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 2px solid #0a0a0a;
+  animation: bounceIn 0.5s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Responsive */
@@ -453,24 +501,30 @@
   }
 
   .floating-toggle {
-    right: 350px;
+    right: 370px;
+  }
+
+  .floating-toggle.closed {
+    right: 20px;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    position: absolute;
+    position: fixed;
     right: 0;
     top: 0;
     height: 100%;
     width: 100%;
     max-width: 400px;
-    z-index: 50;
+    z-index: 100;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
   }
 
   .floating-toggle {
+    position: fixed;
     right: 20px;
-    top: 20px;
+    top: 80px;
     transform: none;
   }
 
@@ -480,6 +534,10 @@
 
   .floating-toggle:hover {
     transform: scale(1.1);
+  }
+
+  .floating-toggle:active {
+    transform: scale(0.95);
   }
 
   .video-header {

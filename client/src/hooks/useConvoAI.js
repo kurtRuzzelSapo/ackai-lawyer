@@ -12,10 +12,13 @@ export function useConvoAI() {
   const [conversation, setConversation] = useState([]);
   const [channelName, setChannelName] = useState('');
   const [error, setError] = useState(null);
+  const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   
   const configRef = useRef(null);
   const localTracksRef = useRef({ audioTrack: null, videoTrack: null });
   const messageBufferRef = useRef({});
+  const volumeCheckIntervalRef = useRef(null);
 
   // Load conversation history from localStorage
   useEffect(() => {
@@ -72,6 +75,29 @@ export function useConvoAI() {
       if (mediaType === "audio") {
         user.audioTrack?.play();
         console.log('Playing AI audio from user:', user.uid);
+        
+        // Monitor AI speaking via volume level
+        if (user.audioTrack) {
+          const checkVolume = setInterval(() => {
+            try {
+              if (user.audioTrack) {
+                const volume = user.audioTrack.getVolumeLevel();
+                setIsAISpeaking(volume > 0.1); // Threshold for speaking detection
+              } else {
+                setIsAISpeaking(false);
+              }
+            } catch (e) {
+              // Track might be disposed, stop checking
+              setIsAISpeaking(false);
+            }
+          }, 100);
+          
+          // Store interval to clear later
+          if (!volumeCheckIntervalRef.current) {
+            volumeCheckIntervalRef.current = {};
+          }
+          volumeCheckIntervalRef.current.ai = checkVolume;
+        }
       }
       
       if (mediaType === "video") {
@@ -109,10 +135,22 @@ export function useConvoAI() {
 
   // Start AI call
   const startCall = useCallback(async (initialQuestion = null) => {
+    // Prevent starting if already connected or loading
+    if (isConnected || isLoading) {
+      console.log('Call already in progress, skipping startCall');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
     try {
+      // Check if client is already connected
+      if (client.connectionState === 'CONNECTED' || client.connectionState === 'CONNECTING') {
+        console.log('Client already connected/connecting, leaving first...');
+        await client.leave();
+      }
+
       // Get config from backend
       if (!configRef.current) {
         configRef.current = await apiService.getConfig();
@@ -137,7 +175,27 @@ export function useConvoAI() {
       client.on("stream-message", (senderUid, data) => {
         try {
           const message = new TextDecoder().decode(data);
-          console.log("Received stream message from", senderUid, ":", message);
+          console.log("Received stream message from UID", senderUid);
+          console.log("Message preview:", message.substring(0, 100));
+          
+          // Try to parse as direct JSON first
+          try {
+            const parsed = JSON.parse(message);
+            console.log("Direct JSON parse successful:", parsed);
+            
+            if (parsed.object === 'assistant.transcription' && parsed.text) {
+              console.log("Adding assistant message:", parsed.text);
+              addMessage('assistant', parsed.text);
+              return;
+            } else if (parsed.object === 'user.transcription' && parsed.text) {
+              console.log("Adding user message:", parsed.text);
+              addMessage('user', parsed.text);
+              return;
+            }
+          } catch (directParseError) {
+            // Not direct JSON, try multi-part logic
+            console.log("Not direct JSON, checking for multi-part message");
+          }
           
           // Check if it's a multi-part message
           if (message.includes('|') && message.split('|').length >= 4) {
@@ -146,6 +204,8 @@ export function useConvoAI() {
             const partNum = parseInt(parts[1]);
             const totalParts = parseInt(parts[2]);
             const base64Part = parts[3];
+            
+            console.log(`Multi-part message detected: ID=${msgId}, part ${partNum}/${totalParts}`);
             
             if (!messageBufferRef.current[msgId]) {
               messageBufferRef.current[msgId] = {
@@ -158,13 +218,26 @@ export function useConvoAI() {
             messageBufferRef.current[msgId].parts[partNum - 1] = base64Part;
             messageBufferRef.current[msgId].receivedParts++;
             
+            console.log(`Message ${msgId}: received ${messageBufferRef.current[msgId].receivedParts}/${totalParts} parts`);
+            
             if (messageBufferRef.current[msgId].receivedParts === totalParts) {
               try {
                 const completeBase64 = messageBufferRef.current[msgId].parts.join('');
-                const decoded = atob(completeBase64);
-                const parsed = JSON.parse(decoded);
+                console.log("Reconstructing from base64, length:", completeBase64.length);
                 
-                console.log("Reconstructed message:", parsed);
+                const decoded = atob(completeBase64);
+                console.log("Decoded string length:", decoded.length);
+                console.log("Decoded preview:", decoded.substring(0, 200));
+                
+                // Validate JSON before parsing
+                if (!decoded || decoded.trim().length === 0) {
+                  console.error("Empty decoded message");
+                  delete messageBufferRef.current[msgId];
+                  return;
+                }
+                
+                const parsed = JSON.parse(decoded);
+                console.log("Successfully parsed reconstructed message:", parsed);
                 
                 if (parsed.object === 'assistant.transcription' && parsed.text) {
                   addMessage('assistant', parsed.text);
@@ -175,23 +248,17 @@ export function useConvoAI() {
                 delete messageBufferRef.current[msgId];
               } catch (e) {
                 console.error("Error processing reconstructed message:", e);
+                console.error("Failed message ID:", msgId);
+                // Clean up failed message
+                delete messageBufferRef.current[msgId];
               }
             }
           } else {
-            // Single-part message
-            try {
-              const parsed = JSON.parse(message);
-              
-              if (parsed.object === 'assistant.transcription' && parsed.text) {
-                addMessage('assistant', parsed.text);
-              } else if (parsed.object === 'user.transcription' && parsed.text) {
-                addMessage('user', parsed.text);
-              }
-            } catch (e) {
-              // If not JSON, treat as plain text from AI
-              if (senderUid === 10001 || senderUid === 10002) {
-                addMessage('assistant', message);
-              }
+            // Not JSON and not multi-part, treat as plain text from AI
+            console.log("Plain text message from UID", senderUid);
+            if (senderUid === 10001 || senderUid === 10002) {
+              console.log("Adding as assistant message:", message);
+              addMessage('assistant', message);
             }
           }
         } catch (e) {
@@ -220,6 +287,27 @@ export function useConvoAI() {
       
       localTracksRef.current.audioTrack = tracks[0];
       localTracksRef.current.videoTrack = tracks[1];
+
+      // Monitor user speaking via volume level
+      const checkUserVolume = setInterval(() => {
+        try {
+          if (localTracksRef.current.audioTrack) {
+            const volume = localTracksRef.current.audioTrack.getVolumeLevel();
+            setIsUserSpeaking(volume > 0.1); // Threshold for speaking detection
+          } else {
+            setIsUserSpeaking(false);
+          }
+        } catch (e) {
+          // Track might be disposed, stop checking
+          setIsUserSpeaking(false);
+        }
+      }, 100);
+      
+      // Store interval to clear later
+      if (!volumeCheckIntervalRef.current) {
+        volumeCheckIntervalRef.current = {};
+      }
+      volumeCheckIntervalRef.current.user = checkUserVolume;
 
       // Publish local tracks
       console.log('Publishing local audio and video tracks...');
@@ -322,13 +410,33 @@ export function useConvoAI() {
     } finally {
       setIsLoading(false);
     }
-  }, [client, addMessage, handleUserPublished, handleUserUnpublished, handleUserLeft]);
+  }, [client, addMessage, handleUserPublished, handleUserUnpublished, handleUserLeft, isConnected, isLoading]);
 
   // End call
   const endCall = useCallback(async () => {
+    if (!isConnected && !agentId) {
+      console.log('No active call to end');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
+      // Clear volume check intervals
+      if (volumeCheckIntervalRef.current) {
+        if (volumeCheckIntervalRef.current.ai) {
+          clearInterval(volumeCheckIntervalRef.current.ai);
+        }
+        if (volumeCheckIntervalRef.current.user) {
+          clearInterval(volumeCheckIntervalRef.current.user);
+        }
+        volumeCheckIntervalRef.current = null;
+      }
+      
+      // Reset speaking states
+      setIsAISpeaking(false);
+      setIsUserSpeaking(false);
+      
       // Stop AI agent
       if (agentId) {
         await apiService.stopConvoAI(agentId);
@@ -347,14 +455,17 @@ export function useConvoAI() {
         localTracksRef.current.videoTrack = null;
       }
       
-      // Leave channel
-      await client.leave();
-      console.log('Left RTC channel');
+      // Leave channel if connected
+      if (client.connectionState === 'CONNECTED' || client.connectionState === 'CONNECTING') {
+        await client.leave();
+        console.log('Left RTC channel');
+      }
       
       // Remove event listeners
       client.off("user-published", handleUserPublished);
       client.off("user-unpublished", handleUserUnpublished);
       client.off("user-left", handleUserLeft);
+      client.off("stream-message");
       
       setIsConnected(false);
       setAgentId(null);
@@ -365,7 +476,7 @@ export function useConvoAI() {
     } finally {
       setIsLoading(false);
     }
-  }, [agentId, client, handleUserPublished, handleUserUnpublished, handleUserLeft]);
+  }, [agentId, client, handleUserPublished, handleUserUnpublished, handleUserLeft, isConnected]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -386,6 +497,8 @@ export function useConvoAI() {
     endCall,
     clearConversation,
     addMessage,
-    localTracksRef
+    localTracksRef,
+    isAISpeaking,
+    isUserSpeaking
   };
 }

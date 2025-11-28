@@ -326,9 +326,12 @@ section {
 /* Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-top: 3rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .service-card {
@@ -341,6 +344,7 @@ section {
   opacity: 0;
   transform: translateY(40px);
   animation: fadeInUp 0.6s ease forwards;
+  width: 100%;
 }
 
 .service-card:nth-child(1) { animation-delay: 0.1s; }
@@ -386,14 +390,19 @@ section {
 
 /* Services Grid */
 .services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
+display: flex;
+justify-content: center;
+align-items: center;
+  width: 100%;
   gap: 1.5rem;
-  margin-top: 3rem;
 }
 
 .service-card.large {
-  grid-column: span 2;
+  grid-column: span 3;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Glass Card CTA */
@@ -730,35 +739,484 @@ section {
     gap: 2rem;
   }
 
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .service-card.large {
-    grid-column: span 1;
+    grid-column: span 2;
+    max-width: 100%;
+  }
+
+  .hero-section {
+    padding: 5rem 1.5rem 3rem;
+  }
+
+  section {
+    padding: 4rem 1.5rem;
+  }
+
+  .suggestion-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem;
+  }
+
+  .hero-section {
+    padding: 4rem 1rem 2rem;
+    min-height: auto;
+  }
+
+  .hero-title {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+    display: flex;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .suggestion-container {
+    margin: 2rem auto;
+  }
+
+  .suggestion-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .suggestion-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .suggestion-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
   .glass-card {
     flex-direction: column;
     text-align: center;
+    padding: 2rem;
+  }
+
+  .glass-title {
+    font-size: 1.5rem;
+  }
+
+  .glass-description {
+    font-size: 0.95rem;
   }
 
   .btn-glass {
     width: 100%;
     justify-content: center;
+    padding: 1rem 2rem;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
   }
 
   .cards-grid,
   .services-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem;
+    margin-top: 2rem;
+    width: 100%;
+  }
+
+  .service-card {
+    padding: 1.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .service-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .service-card.large {
+    grid-column: span 1 !important;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-desc {
+    font-size: 0.875rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+    padding: 0 1rem;
+  }
+
+  .faq-title {
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
+
+  .faq-subtitle {
+    font-size: 1rem;
+  }
+
+  .faq-question {
+    padding: 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+
+  .faq-answer {
+    font-size: 0.875rem;
+  }
+
+  .social-links {
+    gap: 1.5rem;
+  }
+
+  .social-link {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  section {
+    padding: 3rem 1rem;
+  }
+
+  .cta-container {
+    padding: 3rem 1rem;
+  }
+
+  .step-content {
+    min-height: 300px;
+    padding: 1.5rem;
+  }
+
+  .chat-bubble {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 480px) {
+  .nav-container {
+    padding: 0.875rem;
+  }
+
+  .logo a {
+    font-size: 1.25rem;
+  }
+
+  .hero-section {
+    padding: 3.5rem 1rem 2rem;
+  }
+
+  .hero-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .hero-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .btn-primary {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .suggestion-container {
+    margin: 1.5rem auto;
+  }
+
+  .suggestion-title {
+    font-size: 1rem;
+  }
+
+  .suggestion-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
   .hero-stats {
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .cards-grid,
+  .services-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .service-card {
+    padding: 1.25rem;
+    max-width: 100%;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .service-card.large {
+    max-width: 100%;
+    width: 100%;
+    grid-column: span 1 !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .glass-card {
+    padding: 1.5rem;
+  }
+
+  .glass-title {
+    font-size: 1.25rem;
+  }
+
+  .glass-description {
+    font-size: 0.85rem;
+  }
+
+  .btn-glass {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .faq-title {
+    font-size: 1.75rem;
+  }
+
+  .faq-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .faq-question {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .faq-answer {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .faq-item.active .faq-answer {
+    padding: 0 0.875rem 0.875rem;
+  }
+
+  .social-link {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
   }
 
   section {
-    padding: 4rem 1rem;
+    padding: 2.5rem 1rem;
+  }
+
+  .cta-container {
+    padding: 2.5rem 1rem;
+  }
+
+  .footer {
+    padding: 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  .mobile-menu {
+    padding: 0.75rem 0;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDownMenu {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .nav-link-mobile {
+    padding: 0.625rem 0;
+    font-size: 0.95rem;
+  }
+
+  .btn-login-mobile {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .step-item {
+    padding: 1rem;
+  }
+
+  .step-title {
+    font-size: 1.1rem;
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+  }
+
+  .step-content {
+    min-height: 250px;
+    padding: 1rem;
+  }
+
+  .chat-bubble {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    max-width: 85%;
+  }
+
+  .btn-step {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-title {
+    font-size: 1.35rem;
+  }
+
+  .btn-primary {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .suggestion-btn {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.75rem;
+  }
+
+  .cards-grid,
+  .services-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.875rem;
+    width: 100%;
+  }
+
+  .service-card {
+    padding: 1rem;
+    max-width: 100%;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .service-card.large {
+    grid-column: span 1 !important;
+    max-width: 100%;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
   }
 }

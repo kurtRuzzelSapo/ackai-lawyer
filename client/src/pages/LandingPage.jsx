@@ -210,7 +210,7 @@ function LandingPage() {
         </p>
 
         <div className="services-grid">
-          <div className="service-card large">
+          <div className="service-card ">
             <div className="card-icon">
               <i className="fas fa-gavel"></i>
             </div>
